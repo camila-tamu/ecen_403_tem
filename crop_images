@@ -1,0 +1,55 @@
+#used to crop the database images
+global path
+from PIL import Image
+import numpy
+import pandas as pd
+import os
+print(path)
+for images in os.listdir(path):
+    # check if the image ends with tif
+    if (images.endswith(".tif")or images.endswith(".tiff")):
+        # display
+        # Open the TIFF image
+        sim_file = '% s' % images
+        add_on="/"
+        file_tif = ''.join([add_on ,sim_file])
+        full_path_tif =''.join([path ,file_tif])
+        full_path = ''.join([path , add_on])
+        f=''.join([full_path, sim_file])
+        image = Image.open(f)
+        width, height = image.size
+        # Define the cropping amounts (left, top, right, bottom)
+        # Define the cropping coordinates (left, upper, right, lower)
+        left = 65
+        upper = 60
+        right = width - 50
+        lower = height - 60
+
+        # Crop the image
+        cropped_image = image.crop((left, upper, right, lower))
+        image.close()
+        # Save the cropped image
+        cropped_image.save(full_path+sim_file)
+
+#used to crop the experimental image
+global path
+sim_file = "Exp_1.tif"
+add_on="/"
+file_tif = ''.join([add_on ,sim_file])
+full_path_tif =''.join([path ,file_tif])
+full_path = ''.join([path , add_on])
+f=''.join([full_path, sim_file])
+image = Image.open('C:/Users/Angelo Carrion/Exp_1.tif')
+width, height = image.size
+# Define the cropping amounts (left, top, right, bottom)
+# Define the cropping coordinates (left, upper, right, lower)
+left = 90
+upper = 65
+right = width - 37
+lower = height - 67
+
+# Crop the image
+cropped_image = image.crop((left, upper, right, lower))
+image.close()
+# Save the cropped image
+cropped_image.save('C:/Users/Angelo Carrion/Exp_1.tif')
