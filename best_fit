@@ -1,0 +1,62 @@
+import numpy as np
+from scipy.optimize import curve_fit
+global path
+from scipy.optimize import least_squares
+global path
+from PIL import Image
+import numpy
+import pandas as pd
+import os
+def get_best_image(filename, images):
+        def linear_func(x, a, b):
+            return a * x + 
+        #opening both the input file and the 
+        #simulated files
+        img = Image.open(filename)
+        sim_file = '% s' % images
+        add_on="/"
+        file_tif = ''.join([add_on ,sim_file])
+        global full_path_tif
+        full_path_tif =''.join([path ,file_tif])
+        img2 = Image.open(full_path_tif).convert('L')
+        imarray = numpy.array(img)
+        imarray2 = numpy.array(img2)
+        #reshape images into 1D arrays
+        flatten_image1 = imarray.reshape(-1) # flatten the array into a 1D vector
+        flatten_image2 = imarray2.reshape(-1) # flatten the array into a 1D vector
+        imarray = numpy.array(flatten_image1)
+        imarray2 = numpy.array(flatten_image2)
+        #using curve fit, best for non-linear least square fitting methods
+        params1, _ = curve_fit(linear_func, flatten_image1, flatten_image2)
+        #creating the desired linear function using the input picture
+        #and the paramters to create a line that should be comapred to
+        fitted_line = linear_func(flatten_image1, *params1)
+        mse = (np.mean((flatten_image2 - fitted_line) ** 2))/100
+        #print(full_path_tif)
+        #print(f'Mean Squared Error percentage: {mse}')
+        return mse, full_path_tif
+
+
+
+global path
+global full_path_tif
+from scipy.optimize import least_squares
+global path
+from PIL import Image
+import numpy
+import pandas as pd
+import os
+filename = 'C:/Users/Angelo Carrion/Exp_1.tif'
+list_num = []
+list_name = []
+for images in os.listdir(path):
+    # check if the image ends with tif 
+    list_num.append(get_best_image(filename, images)[0])
+    list_name.append(get_best_image(filename, images)[1])
+min_value = min(list)
+min_value_name = list_name[list_num.index(min_value)]
+print(min_value)
+print(min_value_name)
+best_fit_image = '% s' %min_value_name
+img = Image.open(best_fit_image)
+img.show()
