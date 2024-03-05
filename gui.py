@@ -3,6 +3,10 @@ from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 from pandastable import Table, TableModel
 import pandas as pd
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+
+
 
 """
 Team Name: Team 6 - Analytical Database for TEM Sample Thickness Determination
@@ -12,6 +16,33 @@ Date: March 1, 2024
 
 This script creates a GUI application using tkinter for loading images and displaying simulation data in a table.
 """
+
+
+
+"""
+    Converts an image file to TIFF format.
+
+    This function opens an image file, converts it to TIFF format, and saves the new image. 
+    The new image has the same name as the original file but with a '.tif' extension.
+
+    Parameters:
+    ----------
+    file_path : str
+        The path to the image file to be converted.
+
+    Returns:
+    -------
+    str
+        The path to the newly created TIFF image.    
+"""
+def convert_to_tif(file_path):
+    img = Image.open(file_path)
+
+    new_file_path = file_path.rsplit('.', 1)[0] + '.tif'
+
+    img.save(new_file_path, 'TIFF')
+
+    return new_file_path
 
 
 
@@ -33,12 +64,37 @@ def load_image(img_label):
     if not file_path:
         return
     if file_path:
-        img = Image.open(file_path)
-        img = img.resize((300, 300), Image.LANCZOS)
-        img = ImageTk.PhotoImage(img)
-        img_label.config(image = img)
-        img_label.image = img
-        loaded_image = img
+
+        if file_path.lower().endswith('.tif') or file_path.lower().endswith('.tiff'):
+            tif_file_path = file_path
+        else:
+            tif_file_path = convert_to_tif(file_path)
+
+        img = Image.open(tif_file_path)
+
+        fig = Figure(figsize= (4,4))
+        ax = fig.add_subplot(111)
+
+        ax.imshow(img, cmap = 'gray')
+        ax.axis('off')
+
+        canvas = FigureCanvasTkAgg(fig, master = img_label)
+        canvas.draw()
+        canvas.get_tk_widget().pack()
+        
+        loaded_image = ImageTk.PhotoImage(img)
+
+        # img = Image.open(file_path)
+        # img = mpimg.imread(file_path)
+        # plt.imshow(img)
+        # plt.show()
+
+        # img = Image.open(file_path)
+        # # img = img.resize((300, 300), Image.LANCZOS)
+        # img = ImageTk.PhotoImage(img)
+        # img_label.config(image = img)
+        # img_label.image = img
+        # loaded_image = img
 
     # Create a new window for user input
     input_window = tk.Toplevel(window)
@@ -62,7 +118,7 @@ def load_image(img_label):
     angle_entry.pack()
 
     # Create a button that will retrieve the input values when clicked
-    submit_button = tk.Button(input_window, text = "Submit", command=lambda: retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, df, output_img_label))
+    submit_button = tk.Button(input_window, text = "Submit", command = lambda: retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, df, output_img_label))
     submit_button.pack()
 
 
