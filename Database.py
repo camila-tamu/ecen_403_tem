@@ -3,135 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 from tqdm import tqdm
-print(py4DSTEM.__version__)
-
-def defMaterial(positions, numbers, cell):
-    material = py4DSTEM.process.diffraction.Crystal(positions, numbers, cell)
-    material.plot_structure(figsize=(4,4))
-    return material
-
-def simImg(material, thickness, thicknessStep = 1, semiAngle = 9.75, angleStep = 1, mistilt = 0, tiltStep = 1, zoneAxis = [0, 1, 1], accV = 200e3):
-    # Calculate structure factors
-    material.calculate_structure_factors(k_max=2.0, tol_structure_factor=0.0)
-
-    # Convert the V_g to relativistic-corrected U_g
-    material.calculate_dynamical_structure_factors(accV, "WK-CP", k_max=2.0, thermal_sigma=0.08, tol_structure_factor=0.0)
-
-    # Generate a kinemaical diffraction pattern, which will set which beams are included in
-    # the dynamical matrix.
-    beams = material.generate_diffraction_pattern(zone_axis_lattice=zoneAxis, tol_intensity=0., k_max=2.5, tol_excitation_error_mult=1)
-
-    py4DSTEM.process.diffraction.plot_diffraction_pattern(
-        beams,
-        scale_markers=1000,
-        shift_labels=0.05,
-        # shift_marker=0.004,
-        min_marker_size=0,
-        figsize = (4,4),
-    )
-
-    # Generate a converged beam electron diffraction pattern.
-    thickness *= 10
-
-    DP = material.generate_CBED(
-        beams,
-        thickness=thickness,
-        alpha_mrad=semiAngle,
-        pixel_size_inv_A=0.01,
-        DP_size_inv_A=1.1, # Use this to crop the patterns, or leave as None to auto-size to fit the entire pattern
-        zone_axis_lattice=zoneAxis,
-    )
-
-    fig,ax = py4DSTEM.visualize.show(
-        DP,
-        ticks = False,
-        mask_alpha = 0.99,
-        returnfig=True
-    )
-    # Python program to explain os.mkdir() method 
-    # importing os module 
-    import os 
-    # Directory 
-    directory = "simulationss"
-    # Parent Directory path 
-    parent_dir = "C:/Users/Angelo Carrion/"
-    # Path 
-    global path 
-    path = os.path.join(parent_dir, directory)
-    # Create the directory 
-    # directory in 
-    # parent directory
-    if os.path.exists(path):
-        add_on="/"
-        full_path = ''.join([path ,add_on])
-        fig.savefig(full_path + f"{(thickness/10):0.0f} nm.tif")
-    else:
-        os.mkdir(path)
-        print("Directory '% s' created" % directory)
-        add_on="/"
-        full_path = ''.join([path ,add_on])
-        fig.savefig(full_path + f"{(thickness/10):0.0f} nm.tif")
-    return path
-
-Si = defMaterial(
-    [[0.25, 0.75, 0.25],
-     [0.0,  0.0,  0.5],
-     [0.25, 0.25, 0.75],
-     [0.0,  0.5,  0.0],
-     [0.75, 0.75, 0.75],
-     [0.5,  0.0,  0.0],
-     [0.75, 0.25, 0.25],
-     [0.5,  0.5,  0.5],],
-    14,
-    5.468728
-)
-
-# code for collecting user input
-
-for i in range(121, 122):
-    simImg(Si, i)
-
-
 global path
+global full_path_tif
+from scipy.optimize import least_squares
 from PIL import Image
 import numpy
 import pandas as pd
-import os
-#provides centered simulated image at 384 by 384
-def crop_sim(images):#use this to crop the simulation in the database
-# check if the image ends with tif
-    if (images.endswith(".tif")or images.endswith(".tiff")):
-        # display
-        # Open the TIFF image
-        sim_file = '% s' % images
-        add_on="/"
-        file_tif = ''.join([add_on ,sim_file])
-        full_path_tif =''.join([path ,file_tif])
-        full_path = ''.join([path , add_on])
-        f=''.join([full_path, sim_file])
-        image = Image.open(f)
-        width, height = image.size
-        # Define the cropping amounts (left, top, right, bottom)
-        # Define the cropping coordinates (left, upper, right, lower)
-        left = 65.5
-        upper = 60.5
-        right = width - 50.5
-        lower = height - 55.5
-
-        # Crop the image
-        cropped_image = image.crop((left, upper, right, lower))
-        image.close()
-        # Save the cropped image
-        return cropped_image.save(full_path+sim_file)
-for images in os.listdir(path):
-    crop_sim(images)
-
-
-
+import os 
 import cv2
-import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from scipy.optimize import curve_fit
 def pre_process_image(filename):
     # Load your image (replace 'your_image.tif' with your actual image path)
     image = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
@@ -249,15 +130,6 @@ def pre_process_image(filename):
     return processed_output_filename
 
 
-import numpy as np
-from scipy.optimize import curve_fit
-global path
-from scipy.optimize import least_squares
-global path
-from PIL import Image
-import numpy
-import pandas as pd
-import os
 def get_best_image(filename, images):
         def linear_func(x, a, b):
             return a * x + b
@@ -289,15 +161,8 @@ def get_best_image(filename, images):
 
 
 
-global path
-global full_path_tif
-from scipy.optimize import least_squares
-global path
-from PIL import Image
-import numpy
-import pandas as pd
-import os
-import matplotlib.pyplot as plt
+
+#input image
 filename ='C:/Users/Angelo Carrion/Exp_2.tif'
 
     # Load the TIFF file
