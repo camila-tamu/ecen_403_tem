@@ -5,14 +5,14 @@ from pandastable import Table, TableModel
 import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-
+from Database import *
 
 
 """
 Team Name: Team 6 - Analytical Database for TEM Sample Thickness Determination
 Company: Samsung Austin Semiconductor
 Team Members: Camila Brigueda, Angelo Carrion, Tejini Murthy
-Date: March 1, 2024
+Date: March 26, 2024
 
 This script creates a GUI application using tkinter for loading images and displaying simulation data in a table.
 """
@@ -162,13 +162,12 @@ def retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, 
                 # Append the new values
                 df = df.append({'Simulation Measurements': measurement, 'Simulation Results': results[i]}, ignore_index=True)
 
-        # # Insert the input values to the DataFrame
-        # new_data = pd.DataFrame({
-        #     'Simulation Measurements': ['Accelerating Voltage', 'Zone Axis', 'Convergence Angle'],
-        #     'Simulation Results': [voltage, axis, angle],
-        # })
-        # 
-        # df = pd.concat([df, new_data])
+        # Calculate thickness here and update the DataFrame
+        thickness = determine_thickness()  # Assuming determine_thickness() returns the thickness
+        if 'Thickness' in df['Simulation Measurements'].values:
+            df.loc[df['Simulation Measurements'] == 'Thickness', 'Simulation Results'] = thickness
+        else:
+            df = df.append({'Simulation Measurements': 'Thickness', 'Simulation Results': thickness}, ignore_index=True)
 
         # Update the table
         table.updateModel(TableModel(df))
@@ -248,6 +247,30 @@ right_frame.grid(row = 0, column = 1, sticky = 'nsew')
 # Save Image button
 save_button = tk.Button(output_frame, text="Save Image", command=save_image)
 save_button.grid(row=1, column=0, padx=10, pady=10, sticky="ne")
+
+
+
+# Replace 'input_image_file' with the actual image file or variable
+processed_image = pre_process_image('Exp_1')
+best_image, thickness = get_best_image(processed_image)
+
+# Convert the images to a format that can be used in a Tkinter label
+processed_tk_image = ImageTk.PhotoImage(Image.fromarray(processed_image))
+best_tk_image = ImageTk.PhotoImage(Image.fromarray(best_image))
+
+# Create Tkinter labels and set their image options to the converted images
+processed_image_label = tk.Label(window, image=processed_tk_image)
+processed_image_label.image = processed_tk_image  # keep a reference to prevent garbage collection
+processed_image_label.pack()  # add the label to the window
+
+best_image_label = tk.Label(window, image=best_tk_image)
+best_image_label.image = best_tk_image  # keep a reference to prevent garbage collection
+best_image_label.pack()  # add the label to the window
+
+# Display the thickness calculation
+thickness_label = tk.Label(window, text=f"Thickness: {thickness}")
+thickness_label.pack()
+
 
 
 data = {
