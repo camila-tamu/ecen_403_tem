@@ -9,7 +9,7 @@ from scipy.optimize import least_squares
 from PIL import Image
 import numpy
 import pandas as pd
-import os 
+import os
 import cv2
 import matplotlib.image as mpimg
 from scipy.optimize import curve_fit
