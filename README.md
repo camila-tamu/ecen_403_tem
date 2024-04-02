@@ -31,6 +31,21 @@ preparation and imaging processes as it is more accurate and ensures mechanical 
 
 # Installation
 
+To get started with this project, you can follow these steps: 
+
+Clone the repository to your local machine:
+
+    git clone https://github.com/camila-tamu/ecen_403_tem.git
+
+<br />
+
+Navigate to the project directory
+
+    cd ecen_403_tem
+
+
+<br />
+   
 ### Database Installation:
 
 **FILL THIS OUT !!!!!!!!!!!!!!!!**
