@@ -320,21 +320,21 @@ def output_image():
     data = []
     thickness = final_value
     material = "Silicon"
-    measurements.append['Material', 'Thickness']
-    results.append[material, thickness]
+    measurements.extend(['Material', 'Thickness'])
+    results.extend([material, thickness])
 
     # Create a list of dictionaries with measurement results
-    # for measurement, result in zip(measurements, results):
-    #     data.append({'Simulation Measurements': measurement, 'Simulation Results': result})
+    for measurement, result in zip(measurements, results):
+        data.append({'Simulation Measurements': measurement, 'Simulation Results': result})
 
-    for i, measurement in enumerate(measurements):
-        if measurement in df['Simulation Measurements'].values:
-            # Overwrite the existing values
-            df.loc[df['Simulation Measurements'] == measurement, 'Simulation Results'] = results[i]
-        else:
-            # Append the new values
-            df = df.append({'Simulation Measurements': measurement, 'Simulation Results': results[i]}, ignore_index=True)
 
+    # for i, measurement in enumerate(measurements):
+    #     if measurement in df['Simulation Measurements'].values:
+    #         # Overwrite the existing values
+    #         df.loc[df['Simulation Measurements'] == measurement, 'Simulation Results'] = results[i]
+    #     else:
+    #         # Append the new values
+    #         df = df.append({'Simulation Measurements': measurement, 'Simulation Results': results[i]}, ignore_index=True)
 
 
     # Create a DataFrame from the list of dictionaries
