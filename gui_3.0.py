@@ -264,7 +264,7 @@ def output_image():
     ones_place = int(min_value) % 10
     reference_tenths = int(min_value * 10) % 10
 
-    values_with_same_error = [value for value in list_num if int(value * 10) % 10 == reference_tenths and int(value) % 10 == ones_place]
+    # values_with_same_error = [value for value in list_num if int(value * 10) % 10 == reference_tenths and int(value) % 10 == ones_place]
 
     # Get names associated with the values at these indices
     # Find indices of values with the same error place as the minimum value
