@@ -11,12 +11,12 @@ from Database import *
 
 
 """
-Team Name: Team 6 - Analytical Database for TEM Sample Thickness Determination
-Company: Samsung Austin Semiconductor
-Team Members: Camila Brigueda, Angelo Carrion, Tejini Murthy
-Date: April 1, 2024
+    Team Name: Team 6 - Analytical Database for TEM Sample Thickness Determination
+    Company: Samsung Austin Semiconductor
+    Team Members: Camila Brigueda, Angelo Carrion, Tejini Murthy
+    Date: April 9, 2024
 
-This script creates a GUI application using tkinter for loading images and displaying simulation data in a table.
+    This script creates a GUI application using tkinter for loading images and displaying simulation data in a table.
 """
 
 
@@ -62,6 +62,7 @@ file_path = None
 def load_image(input_img_label):
     global loaded_image
     global file_path
+
     # Clear Canvas
     for widget in input_img_label.winfo_children():
         widget.destroy()
@@ -98,14 +99,10 @@ def load_image(input_img_label):
         input_img_label.config(image = loaded_image)
         input_img_label.image = loaded_image
 
-
     # Create a new window for user input
     input_window = tk.Toplevel(window)
     input_window.title("Input Parameters")
     input_window.geometry("300x300+350+300")
-
-    # input_window.bind('<Destroy>', lambda e: input_img_label.config(image = loaded_image))
-
 
     # Create labels and entry fields for each parameter
     voltage_label = tk.Label(input_window, text = "Accelerating Voltage:")
@@ -122,7 +119,6 @@ def load_image(input_img_label):
     angle_label.pack()
     angle_entry = tk.Entry(input_window)
     angle_entry.pack()
-
 
     # Create a button that will retrieve the input values when clicked
     submit_button = tk.Button(input_window, text = "Submit", command = lambda: retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, df, input_img_label))
@@ -150,7 +146,6 @@ def load_image(input_img_label):
         The DataFrame that contains the data for the table.
 """
 voltage, axis, angle = "", "", ""
-
 def retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, df, input_img_label):
     global measurements
     global results
@@ -185,13 +180,6 @@ def retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, 
                 # Append the new values
                 df = df.append({'Simulation Measurements': measurement, 'Simulation Results': results[i]}, ignore_index=True)
 
-        # Calculate thickness here and update the DataFrame
-        # thickness = determine_thickness()  # Assuming determine_thickness() returns the thickness
-        # if 'Thickness' in df['Simulation Measurements'].values:
-        #     df.loc[df['Simulation Measurements'] == 'Thickness', 'Simulation Results'] = thickness
-        # else:
-        #     df = df.append({'Simulation Measurements': 'Thickness', 'Simulation Results': thickness}, ignore_index=True)
-
         # Update the table
         table.updateModel(TableModel(df))
         table.redraw()
@@ -203,8 +191,18 @@ def retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, 
 
 
 
+"""
+    Saves the output image to a user-specified location. The user is prompted to select a location 
+    and provide a name for the file.
+
+    Raises:
+    ------
+    messagebox.showerror
+        If there is no image to save.
+"""
 def save_image():
     global loaded_image
+
     if loaded_image is None:
         messagebox.showerror("Error", "No image to save.")
         return
@@ -212,34 +210,52 @@ def save_image():
     file_path = filedialog.asksaveasfilename(defaultextension = ".tif", filetypes = [("TIFF files", "*.tif")])
     if file_path:
         loaded_image.save(file_path)
-# This code will be changed later once I am able to integrate the back-end
-# development with the front-end development. This is simply for formatting
-# purposes.
+
+
+
+"""
+    Outputs the image from the database that matches the input image that is being processed. The image is 
+    then displayed onto the GUI next to the input image.
+"""
 def output_image():
     global measurements
     global results
     global loaded_image
     global file_path
-        # Load the TIFF file
+
+    # Load the TIFF file
     image = mpimg.imread(file_path)
-    plt.figure(facecolor='black')
-        # Create a new figure and display the image with black borders
-    plt.imshow(image, cmap='gray')
+    plt.figure(facecolor = 'black')
+    
+    # Create a new figure and display the image with black borders
+    plt.imshow(image, cmap = 'gray')
         
-        # Remove axis
+    # Remove axis
     plt.axis('off')
-        
-        # Save the figure
-    bright_output_filename = 'C:/Users/Angelo Carrion/Bright_Exp.tif'
+    
+    # Getting the path to the user's Downloads folder
+    downloads_folder = os.path.expanduser("~\Downloads")
+
+    # Save the figure
+    bright_output_filename = os.path.join(downloads_folder, "Bright_Exp.tif")
+    # bright_output_filename = 'C:/Users/Angelo Carrion/Bright_Exp.tif'
     plt.savefig(bright_output_filename)
     processed_output_file = pre_process_image(bright_output_filename)
-    path = r'C:\Users\Angelo Carrion\simulationss'
+    
+    path = filedialog.askdirectory(title = "Please select the directory where your simulations are located.")
+    if not path:
+        messagebox.showerror("Error", "You must select a directory.")
+        return
+
+    # path = r'C:\Users\Angelo Carrion\simulationss'
     list_num = []
     list_name = []
+
     for images in os.listdir(path):
-        # check if the image ends with tif 
+    # Check if the image ends with tif 
         list_num.append(get_best_image(processed_output_file, images)[0])
         list_name.append(get_best_image(processed_output_file, images)[1])
+    
     min_value = min(list_num)
     min_value_name = list_name[list_num.index(min_value)]
     names_with_same_error = []
@@ -249,6 +265,7 @@ def output_image():
     reference_tenths = int(min_value * 10) % 10
 
     values_with_same_error = [value for value in list_num if int(value * 10) % 10 == reference_tenths and int(value) % 10 == ones_place]
+
     # Get names associated with the values at these indices
     # Find indices of values with the same error place as the minimum value
     indices_with_same_error = [i for i, value in enumerate(list_num) if int(value * 10) % 10 == reference_tenths and int(value) % 10 == ones_place]
@@ -283,41 +300,40 @@ def output_image():
             nm_best_list.append(nm_best)  # Append nm_best to the list  
         else:
             print("No numbers found in the string for name:", name)
+
     numerical_value_best = int(''.join(filter(str.isdigit, best)))
     numerical_values = []
     error_values=[]
+
     for names in nm_best_list:
         numerical_value = int(''.join(filter(str.isdigit, names)))  # Extract numerical par
         numerical_values.append(numerical_value)
         # Perform subtraction
     for numbers in numerical_values:
-        if(numerical_value_best == numbers):
+        if (numerical_value_best == numbers):
             continue
         else:
             error_values.append(abs(numbers - numerical_value_best))
             
     if error_values:  # Check if error_values is not empty
         for values in error_values:
-            if(values > 2):
+            if (values > 2):
                 max_error = 2
             else:
                 max_error = max(error_values)
     else:
-        max_error = 2 
+        max_error = 2
+
     error_pl = str(max_error)
-    add_on=" nm"
-    error_best = ''.join([error_pl ,add_on])
+    add_on = " nm"
+    error_best = ''.join([error_pl, add_on])
     add_PL = ' +- '
-    plus_minus = ''.join([add_PL ,error_best])
-    final_value = ''.join([best ,plus_minus])
-    print(final_value)
+    plus_minus = ''.join([add_PL, error_best])
+    final_value = ''.join([best, plus_minus])
     best_fit_image = '% s' %min_value_name
-#Exp 1 - rotation angle 0
-#EXp 2 - rotation angle 211
     
-# Initialize df as an empty DataFrame
     # Initialize an empty list to store data
-    data=[]
+    data = []
     thickness = final_value
     material = "Silicon"
     measurements.extend(['Material', 'Thickness'])
@@ -327,18 +343,9 @@ def output_image():
     for measurement, result in zip(measurements, results):
         data.append({'Simulation Measurements': measurement, 'Simulation Results': result})
 
-
-    # for i, measurement in enumerate(measurements):
-    #     if measurement in df['Simulation Measurements'].values:
-    #         # Overwrite the existing values
-    #         df.loc[df['Simulation Measurements'] == measurement, 'Simulation Results'] = results[i]
-    #     else:
-    #         # Append the new values
-    #         df = df.append({'Simulation Measurements': measurement, 'Simulation Results': results[i]}, ignore_index=True)
-
-
     # Create a DataFrame from the list of dictionaries
     df = pd.DataFrame(data)
+
     # Update the table
     table.updateModel(TableModel(df))
     table.redraw()
@@ -364,15 +371,8 @@ def output_image():
         output_img_label.config(image = loaded_image)
         output_img_label.image = loaded_image
 
-        # loaded_image = Image.open(image_path)
-        # photo = ImageTk.PhotoImage(loaded_image)
-
-        # # Set the image to the label
-        # output_img_label.config(image = photo)
-        # output_img_label.image = photo
     else:
         messagebox.showerror("Error", "No image found.")
-
 
 
 # Initialize the main window
@@ -388,13 +388,6 @@ window.title("Samsung Austin Semiconductor and Texas A&M University - TEM Sample
 window_width = window.winfo_screenwidth() - 40
 window_height = window.winfo_screenheight() - 40
 window.geometry("{0}x{1}+0+0".format(window_width, window_height))
-
-
-# Output frame for displaying the output image
-# output_frame = tk.Frame(window)
-# output_frame.grid(row = 0, column = 1, sticky = 'nsew')
-# output_frame.grid_columnconfigure(0, weight = 1)
-# output_frame.grid_rowconfigure(0, weight = 1)
 
 
 # Left frame for input image loading and outputting image
@@ -434,7 +427,7 @@ data = {
     'Simulation Results': ['', '', '', '', ''],
 }
 
-df = pd.DataFrame(data)  # Create an empty DataFrame, replace this with your data
+df = pd.DataFrame(data)
 
 table = Table(right_frame, dataframe = df,
     showtoolbar = True,
