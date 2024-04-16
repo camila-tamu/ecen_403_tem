@@ -50,6 +50,10 @@ Navigate to the project directory
 
 **FILL THIS OUT !!!!!!!!!!!!!!!!**
 
+This is how you setup the installation for the database:
+
+    hofafjdfjdld
+
 
 <br />
 
