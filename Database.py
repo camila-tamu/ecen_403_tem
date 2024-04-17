@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 from tqdm import tqdm
-global path
 global full_path_tif
 from scipy.optimize import least_squares
 from PIL import Image
@@ -13,8 +12,11 @@ import os
 import cv2
 import matplotlib.image as mpimg
 from scipy.optimize import curve_fit
+
+directory_path = None
+
 def pre_process_image(filename):
-    # Load your image (replace 'your_image.tif' with your actual image path)
+    # Load your image
     image = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
     
     # Thresholding to segment the TEM pattern
@@ -37,7 +39,10 @@ def pre_process_image(filename):
     shifted_image = np.roll(shifted_image, shift_y, axis=0)
     
     # Save the centered image 
-    center_output_filename = 'C:/Users/Angelo Carrion/Centered_Exp.tif'
+    downloads_folder = os.path.expanduser("~/Downloads")
+
+    # Save the figure
+    center_output_filename = os.path.join(downloads_folder, "Centered_Exp.tif")
     cv2.imwrite(center_output_filename, shifted_image)
 
     
@@ -47,7 +52,7 @@ def pre_process_image(filename):
     aspect_ratio = image.shape[1] / image.shape[0]
     
     # Set the size of the figure based on the aspect ratio
-    fig_width = 11  # Adjust as needed
+    fig_width = 11.05 # Adjust as needed
     fig_height = fig_width / aspect_ratio
     
     # Create a figure with the specified size and background color
@@ -60,7 +65,7 @@ def pre_process_image(filename):
     plt.axis('off')
     
     # Save the displayed image
-    blowup_output_filename = 'C:/Users/Angelo Carrion/blowup_Exp.tif'
+    blowup_output_filename = os.path.join(downloads_folder, "Blowup_Exp.tif")
     plt.savefig(blowup_output_filename, bbox_inches='tight', pad_inches=0)
     # Close the figure to release memory
     plt.close(fig)
@@ -87,10 +92,9 @@ def pre_process_image(filename):
     resized_cropped_region = cv2.resize(cropped_region, (desired_width, desired_height), interpolation=cv2.INTER_LINEAR)
     
     # Save the final image
-    resize_output_filename = 'C:/Users/Angelo Carrion/Resized_Exp.tif'
+    resize_output_filename = os.path.join(downloads_folder, "Resized_Exp.tif")
     cv2.imwrite(resize_output_filename, resized_cropped_region)
-
-    #beginnning the rotattion for the image
+#beginnning the rotattion for the image
     # Load your image
     image = cv2.imread(resize_output_filename, cv2.IMREAD_GRAYSCALE)
     
@@ -100,7 +104,6 @@ def pre_process_image(filename):
     
     # Find contours in the edge-detected image
     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
     # Calculate the orientation angle of the largest contour
     if contours:
         # Select the largest contour based on area
@@ -109,9 +112,10 @@ def pre_process_image(filename):
         ellipse = cv2.fitEllipse(largest_contour)
         # Extract the angle of rotation from the fitted ellipse
         rotation_angle = ellipse[2]
+        print("Orientation from horizontal:", rotation_angle, "degrees")
         # Adjust rotation angle to orient the image correctly
         if ellipse[1][1] > ellipse[1][0]:
-            rotation_angle += 211
+            rotation_angle -= (180 - rotation_angle)
     else:
         rotation_angle = 0  # Default to no rotation if no contours are found
     
@@ -122,11 +126,11 @@ def pre_process_image(filename):
     
     # Save the rotated image
     global processed_output_file
-    processed_output_filename = 'C:/Users/Angelo Carrion/processed_Exp_image.tif'
+    processed_output_filename = os.path.join(downloads_folder, "Processed_Exp.tif")
     cv2.imwrite(processed_output_filename, rotated_image)
     os.remove(center_output_filename)
     os.remove(blowup_output_filename)
-    #.remove( resize_output_filename)
+    os.remove(resize_output_filename)
     return processed_output_filename
 
 
@@ -140,7 +144,7 @@ def get_best_image(filename, images):
         add_on="/"
         file_tif = ''.join([add_on ,sim_file])
         global full_path_tif
-        full_path_tif =''.join([path ,file_tif])
+        full_path_tif =''.join([directory_path ,file_tif])
         img2 = Image.open(full_path_tif).convert('L')
         imarray = numpy.array(img)
         imarray2 = numpy.array(img2)
@@ -158,40 +162,3 @@ def get_best_image(filename, images):
         #print(full_path_tif)
         #print(f'Mean Squared Error percentage: {mse}')
         return mse, full_path_tif
-
-
-
-
-#input image
-filename ='C:/Users/Angelo Carrion/Exp_2.tif'
-
-    # Load the TIFF file
-image = mpimg.imread(filename)
-plt.figure(facecolor='black')
-    # Create a new figure and display the image with black borders
-plt.imshow(image, cmap='gray')
-    
-    # Remove axis
-plt.axis('off')
-    
-    # Save the figure
-bright_output_filename = 'C:/Users/Angelo Carrion/Bright_Exp.tif'
-plt.savefig(bright_output_filename)
-processed_output_file = pre_process_image(bright_output_filename)
-os.remove(bright_output_filename)
-list_num = []
-list_name = []
-for images in os.listdir(path):
-    # check if the image ends with tif 
-    list_num.append(get_best_image(processed_output_file, images)[0])
-    list_name.append(get_best_image(processed_output_file, images)[1])
-min_value = min(list_num)
-min_value_name = list_name[list_num.index(min_value)]
-print(min_value)
-print(min_value_name)
-best_fit_image = '% s' %min_value_name
-img = Image.open(best_fit_image)
-img.show()
-img.close()
-#Exp 1 - rotation angle 0
-#EXp 2 - rotation angle 211
