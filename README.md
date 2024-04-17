@@ -72,7 +72,7 @@ Once Miniconda has been downloaded, you can open it and install it with the reco
 
 <br />
 
-    conda
+    conda create -n foo -c conda-forge python=3.11 pyfftw
 
 <br />
     
