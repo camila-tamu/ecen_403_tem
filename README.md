@@ -51,18 +51,30 @@ Navigate to the project directory
 For the database, you will need to install Miniconda or Anaconda, however, Miniconda is recommended. From the link below, you can download the appropriate version of Miniconda.
 
     https://docs.anaconda.com/free/miniconda/
+    
+<br />
 
-Once Miniconda has been downloaded, you can open it and install it with the recommended settings. Once this is done, you can open the Miniconda Terminal and run the following lines of code:
+Once Miniconda has been downloaded, you can open it and install it with the recommended settings. Once this is done, you can open the Miniconda Terminal and run the lines of code below. This may take some time.
 
     conda update conda
 
+ <br />
+
     conda create -n py4dstem
+
+<br />
 
     conda activate py4dstem
 
+<br />
+
     conda install -c conda-forge py4dstem py4d-browser pymatgen jupyterlab
 
-    
+<br />
+
+    conda
+
+<br />
     
     conda install -c conda-forge ipympl opencv
 
