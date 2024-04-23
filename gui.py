@@ -84,7 +84,7 @@ def load_image(input_img_label):
             tif_file_path = convert_to_tif(file_path)
 
         img = Image.open(tif_file_path)
-        fig = Figure(figsize =  (2,2))
+        fig = Figure(figsize =  (3, 3))
         ax = fig.add_subplot(111)
         ax.imshow(img, cmap = 'gray')
         ax.axis('off')
@@ -99,29 +99,61 @@ def load_image(input_img_label):
         input_img_label.config(image = loaded_image)
         input_img_label.image = loaded_image
 
+    create_input_window(window, table, df, input_img_label)
+
+
+
+def clear_entry(event, entry, default_text):
+    if entry.get() == default_text:
+        entry.delete(0, tk.END)
+
+
+def fill_entry(event, entry, default_text):
+    if entry.get() == '':
+        entry.insert(0, default_text)
+
+
+
+def create_input_window(window, table, df, input_img_label):
     # Create a new window for user input
     input_window = tk.Toplevel(window)
     input_window.title("Input Parameters")
-    input_window.geometry("300x300+350+300")
+    input_window.geometry("400x400+350+300")
+
+    message_label = tk.Label(input_window, text = "Please enter the values without units. \nExample: 200, 001, 10", font = ('Calibri', 12))
+    message_label.pack()
 
     # Create labels and entry fields for each parameter
-    voltage_label = tk.Label(input_window, text = "Accelerating Voltage:")
+    voltage_label = tk.Label(input_window, text = "Accelerating Voltage:", font = ('Calibri', 12, 'bold'))
     voltage_label.pack()
-    voltage_entry = tk.Entry(input_window)
+    voltage_entry = tk.Entry(input_window, width = 30)
+    voltage_default_text = "Enter voltage in kV"
+    voltage_entry.insert(0, voltage_default_text)
+    voltage_entry.bind("<FocusIn>", lambda event: clear_entry(event, voltage_entry, voltage_default_text))
+    voltage_entry.bind("<FocusOut>", lambda event: fill_entry(event, voltage_entry, voltage_default_text))
     voltage_entry.pack()
 
-    axis_label = tk.Label(input_window, text = "Zone Axis:")
+    axis_label = tk.Label(input_window, text = "Zone Axis:", font = ('Calibri', 12, 'bold'))
     axis_label.pack()
-    axis_entry = tk.Entry(input_window)
+    axis_entry = tk.Entry(input_window, width = 30)
+    axis_default_text = "Enter zone axis in format [hkl]"
+    axis_entry.insert(0, axis_default_text)
+    axis_entry.bind("<FocusIn>", lambda event: clear_entry(event, axis_entry, axis_default_text))
+    axis_entry.bind("<FocusOut>", lambda event: fill_entry(event, axis_entry, axis_default_text))
     axis_entry.pack()
 
-    angle_label = tk.Label(input_window, text = "Convergence Angle:")
+    angle_label = tk.Label(input_window, text = "Convergence Angle:", font = ('Calibri', 12, 'bold'))
     angle_label.pack()
-    angle_entry = tk.Entry(input_window)
+    angle_entry = tk.Entry(input_window, width = 30)
+    angle_default_text = "Enter angle in mrad"
+    angle_entry.insert(0, angle_default_text)
+    angle_entry.bind("<FocusIn>", lambda event: clear_entry(event, angle_entry, angle_default_text))
+    angle_entry.bind("<FocusOut>", lambda event: fill_entry(event, angle_entry, angle_default_text))
     angle_entry.pack()
 
     # Create a button that will retrieve the input values when clicked
-    submit_button = tk.Button(input_window, text = "Submit", command = lambda: retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, df, input_img_label))
+    submit_button = tk.Button(input_window, text = "Submit", command = lambda: retrieve_input(voltage_entry, 
+        axis_entry, angle_entry, input_window, table, df, input_img_label, voltage_default_text, axis_default_text, angle_default_text))
     submit_button.pack()
 
 
@@ -146,7 +178,8 @@ def load_image(input_img_label):
         The DataFrame that contains the data for the table.
 """
 voltage, axis, angle = "", "", ""
-def retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, df, input_img_label):
+def retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, df, input_img_label, 
+    voltage_default_text = "Enter voltage in kV", axis_default_text = "Enter zone axis in format [hkl]", angle_default_text = "Enter angle in mrad"):
     global measurements
     global results
     global loaded_image
@@ -160,17 +193,18 @@ def retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, 
     angle = angle_entry.get()
     
     # Validate the user inputs
-    if (voltage == "") or (axis == "") or (angle == ""):
+    if ((voltage == "") or (axis == "") or (angle == "") or (voltage == voltage_default_text) or (axis == axis_default_text) or (angle == angle_default_text)):
         empty_image = tk.PhotoImage()
         loaded_image = empty_image
         input_img_label.config(image = loaded_image)
         input_img_label.image = loaded_image
-        messagebox.showerror("Error", "Please input all parameters")
-        return
+        messagebox.showerror("Error", "Please input all parameters.")
+        input_window.destroy()
+        create_input_window(window, table, df, input_img_label)
     else:
         # Check if the 'Simulation Measurements' titles exist in the DataFrame
         measurements = ['Accelerating Voltage', 'Zone Axis', 'Convergence Angle']
-        results = [voltage, axis, angle]
+        results = [str(voltage) + ' kV', '[' + str(axis) + ']', str(angle) + ' mrad']
 
         for i, measurement in enumerate(measurements):
             if measurement in df['Simulation Measurements'].values:
@@ -178,7 +212,7 @@ def retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, 
                 df.loc[df['Simulation Measurements'] == measurement, 'Simulation Results'] = results[i]
             else:
                 # Append the new values
-                df = df.append({'Simulation Measurements': measurement, 'Simulation Results': results[i]}, ignore_index=True)
+                df = df.append({'Simulation Measurements': measurement, 'Simulation Results': results[i]}, ignore_index = True)
 
         # Update the table
         table.updateModel(TableModel(df))
@@ -192,36 +226,19 @@ def retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, 
 
 
 """
-    Saves the output image to a user-specified location. The user is prompted to select a location 
-    and provide a name for the file.
-
-    Raises:
-    ------
-    messagebox.showerror
-        If there is no image to save.
-"""
-def save_image():
-    global output_img
-
-    if output_img is None:
-        messagebox.showerror("Error", "No image to save.")
-        return
-    
-    file_path = filedialog.asksaveasfilename(defaultextension = ".tif", filetypes = [("TIFF files", "*.tif")])
-    if file_path:
-        output_img.save(file_path)
-
-
-
-"""
     Outputs the image from the database that matches the input image that is being processed. The image is 
     then displayed onto the GUI next to the input image.
 """
+output_img = None
 def output_image():
     global measurements
     global results
     global loaded_image
     global file_path
+
+    if loaded_image is None:
+        messagebox.showerror("Error", "No image has been loaded.")
+        return
 
     # Load the TIFF file
     image = mpimg.imread(file_path)
@@ -241,7 +258,7 @@ def output_image():
     # bright_output_filename = 'C:/Users/Angelo Carrion/Bright_Exp.tif'
     plt.savefig(bright_output_filename)
     processed_output_file = Database.pre_process_image(bright_output_filename)
-    
+
     Database.directory_path = filedialog.askdirectory(title = "Please select the directory where your simulations are located.")
     if not Database.directory_path:
         messagebox.showerror("Error", "You must select a directory.")
@@ -334,7 +351,7 @@ def output_image():
     # Initialize an empty list to store data
     data = []
     thickness = final_value
-    material = "Silicon"
+    material = "Silicon" # Right now, this is hardcoded data because we will be using the same material for all simulations for now
     measurements.extend(['Material', 'Thickness'])
     results.extend([material, thickness])
 
@@ -356,7 +373,7 @@ def output_image():
     if os.path.exists(best_fit_image):
         global output_img
         output_img = Image.open(best_fit_image)
-        fig = Figure(figsize =  (2,2))
+        fig = Figure(figsize =  (3, 3))
         ax = fig.add_subplot(111)
         ax.imshow(output_img)
         ax.axis('off')
@@ -372,49 +389,102 @@ def output_image():
         output_img_label.image = loaded_image
 
     else:
-        messagebox.showerror("Error", "No image found.")
+        messagebox.showerror("Error", "No output image found.")
 
+
+
+"""
+    Saves the output image to a user-specified location. The user is prompted to select a location 
+    and provide a name for the file.
+
+    Raises:
+    ------
+    messagebox.showerror
+        If there is no image to save.
+"""
+def save_image():
+    global output_img
+
+    if output_img is None:
+        messagebox.showerror("Error", "No output image to save.")
+        return
+    
+    file_path = filedialog.asksaveasfilename(title = "Please choose a location for the output image to be saved.", defaultextension = ".tif", filetypes = [("TIFF files", "*.tif")])
+    if file_path:
+        output_img.save(file_path)
+
+
+
+def on_close():
+    window.destroy()
 
 
 # Initialize the main window
 window = tk.Tk()
+window.protocol("WM_DELETE_WINDOW", on_close)
 window.grid_columnconfigure(0, weight = 1)
 window.grid_rowconfigure(0, weight = 10)
 window.grid_rowconfigure(1, weight = 1)
 window.grid_rowconfigure(2, weight = 1)
 window.title("Samsung Austin Semiconductor and Texas A&M University - TEM Sample Thickness Determination")
+window.resizable(True, True)
+window.configure(bg = 'white')
 
+# Set the window icon
+# windowIcon = Image.open('SamsungIcon.jpg')
+# windowIcon = windowIcon.resize((48, 48), Image.LANCZOS)  # resize the image
+# windowPhotoIcon =  ImageTk.PhotoImage(windowIcon)
+# window.iconphoto(True, windowPhotoIcon)
 
 # Set the size of the window to the screen size
-window_width = window.winfo_screenwidth() - 40
-window_height = window.winfo_screenheight() - 40
-window.geometry("{0}x{1}+0+0".format(window_width, window_height))
+window_width = window.winfo_screenwidth() - 50
+window_height = window.winfo_screenheight() - 50
+
+window.geometry("{0}x{1}+12+12".format(window_width, window_height))
+
+
+
+def on_enter(e):
+    e.widget['background'] = 'dark gray'
+
+
+
+def on_leave(e):
+    e.widget['background'] = 'light gray'
+
 
 
 # Left frame for input image loading and outputting image
 left_frame = tk.Frame(window)
 left_frame.grid(row = 0, column = 0, sticky = 'nsew')
-left_frame.grid_columnconfigure(0, weight = 1)
-left_frame.grid_rowconfigure(0, weight = 1)
+left_frame.grid_columnconfigure((0, 1), weight = 1)
+left_frame.grid_rowconfigure((0, 1, 2), weight = 1)
 
 input_img_label = tk.Label(left_frame)
 input_img_label.grid(row = 0, column = 0, padx = 50, pady = 50, sticky = "nw")
 
 output_img_label = tk.Label(left_frame)
-output_img_label.grid(row = 0, column = 0, padx = 50, pady = 50, sticky = "ne")
+output_img_label.grid(row = 0, column = 1, padx = 50, pady = 50, sticky = "ne")
 
-load_button = tk.Button(left_frame, text = "Load Image", relief = "raised", height = 5, width = 40, font = 15, command = lambda: load_image(input_img_label))
-load_button.grid(row = 2, column = 0, padx = 10, pady = 10, sticky = "w")
+load_button = tk.Button(left_frame, text = "Load Image", relief = "raised", fg = 'black', bg = 'light gray', height = 5, width = 40, font = 15, command = lambda: load_image(input_img_label))
+load_button.bind("<Enter>", on_enter)
+load_button.bind("<Leave>", on_leave)
+load_button.grid(row = 2, column = 0, padx = 10, pady = 10, sticky = "sw")
+
 
 ###
 # Later on, I will customize the buttons. As a reminder "bg" is for background color and "fg" is for text color
 ###
 
-determine_thickness_button = tk.Button(left_frame, text = "Determine Thickness", relief = "raised", height = 5, width = 40, font = 15, command = output_image)
-determine_thickness_button.grid(row = 2, column = 0, padx = 10, pady = 10, sticky = "e")
+determine_thickness_button = tk.Button(left_frame, text = "Determine Thickness", relief = "raised", fg = 'black', bg = 'light gray', height = 5, width = 40, font = 15, command = output_image)
+determine_thickness_button.bind("<Enter>", on_enter)
+determine_thickness_button.bind("<Leave>", on_leave)
+determine_thickness_button.grid(row = 2, column = 1, padx = 10, pady = 10, sticky = "se")
 
-save_button = tk.Button(left_frame, text = "Save Image", relief = "raised", height = 2, width = 15, font = 15, command = save_image)
-save_button.grid(row = 1, column = 0, padx = 10, pady = 10, sticky = "ne")
+save_button = tk.Button(left_frame, text = "Save Image", relief = "raised", fg = 'black', bg = 'light gray', height = 2, width = 15, font = 15, command = save_image)
+save_button.bind("<Enter>", on_enter)
+save_button.bind("<Leave>", on_leave)
+save_button.grid(row = 1, column = 1, padx = 10, pady = 10, sticky = "se")
 
 
 # Right frame for table view
@@ -423,7 +493,7 @@ right_frame.grid(row = 0, column = 1, sticky = 'nsew')
 
 
 data = {
-    'Simulation Measurements': ['Material', 'Thickness', 'Accelerating Voltage', 'Zone Axis', 'Convergence Angle'],
+    'Simulation Measurements': ['Accelerating Voltage', 'Zone Axis', 'Convergence Angle', 'Material', 'Thickness'],
     'Simulation Results': ['', '', '', '', ''],
 }
 
