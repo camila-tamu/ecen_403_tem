@@ -14,10 +14,30 @@ import Database
     Team Name: Team 6 - Analytical Database for TEM Sample Thickness Determination
     Company: Samsung Austin Semiconductor
     Team Members: Camila Brigueda, Angelo Carrion, Tejini Murthy
-    Date: April 9, 2024
+    Date: April 23, 2024
 
     This script creates a GUI application using tkinter for loading images and displaying simulation data in a table.
 """
+
+
+
+""" 
+    Global Variables Dictionary to access throughout multiple functions in the script.
+
+    This was done because a dictionary is much more organized, flexible, and easier to 
+    access than multiple global variables.
+"""
+globalVariables = {
+    'loadedImage': None,
+    'filePath': None,
+    'measurements': None,
+    'results': None,
+    'voltageValue': None,
+    'axisValue': None,
+    'angleValue': None,
+    'outputImg': None,
+    'updateOutputImage': None
+}
 
 
 
@@ -29,20 +49,20 @@ import Database
 
     Parameters:
     ----------
-    file_path : str
+    filePath : str
         The path to the image file to be converted.
 
     Returns:
     -------
-    str
+    new_filePath : str
         The path to the newly created TIFF image.    
 """
-def convert_to_tif(file_path):
-    img = Image.open(file_path)
-    new_file_path = file_path.rsplit('.', 1)[0] + '.tif'
-    img.save(new_file_path, 'TIFF')
+def convert_to_tif(filePath):
+    img = Image.open(filePath)
+    new_filePath = filePath.rsplit('.', 1)[0] + '.tif'
+    img.save(new_filePath, 'TIFF')
 
-    return new_file_path
+    return new_filePath
 
 
 
@@ -56,34 +76,49 @@ def convert_to_tif(file_path):
     ----------
     input_img_label : tk.Label
         The label in which the selected image will be displayed.
-"""
-loaded_image = None
-file_path = None
-def load_image(input_img_label):
-    global loaded_image
-    global file_path
 
-    # Clear Canvas
-    for widget in input_img_label.winfo_children():
+    outputImg_label : tk.Label
+        The label in which the output image will be displayed.
+
+    globalVariables : dict
+        A dictionary containing various global variables.
+
+    Returns:
+    -------
+    None
+
+"""
+def load_image(input_img_label, outputImg_label, globalVariables):
+    for widget in input_img_label.winfo_children(): # Clear the canvas
         widget.destroy()
+
+    for widget in outputImg_label.winfo_children(): # Clear the canvas
+        widget.destroy()
+
+    globalVariables['updateOutputImage'] = False
+    globalVariables['outputImg'] = None
+    globalVariables['loadedImage'] = None
+    outputImg_label.config(image = '')  # Clear the output image label
+
+    determine_thickness_button.config(state = 'normal')
 
     empty_image = tk.PhotoImage()
     input_img_label.config(image = empty_image)
     input_img_label.image = empty_image
-    input_img_label.config(image = empty_image)
-    input_img_label.image = empty_image
+    outputImg_label.config(image = empty_image)
+    outputImg_label.image = empty_image
 
-    file_path = filedialog.askopenfilename(filetypes = [("Image files", "*.png *.jpg *.jpeg *.tif *.tiff")])
+    globalVariables['filePath'] = filedialog.askopenfilename(title = "Please select the experimental image (.tif format).", filetypes = [("Image files", "*.png *.jpg *.jpeg *.tif *.tiff")])
 
-    if not file_path:
+    if not globalVariables['filePath']:
         return
-    if file_path:
-        if file_path.lower().endswith('.tif') or file_path.lower().endswith('.tiff'):
-            tif_file_path = file_path
+    if globalVariables['filePath']:
+        if globalVariables['filePath'].lower().endswith('.tif') or globalVariables['filePath'].lower().endswith('.tiff'):
+            tif_filePath = globalVariables['filePath']
         else:
-            tif_file_path = convert_to_tif(file_path)
+            tif_filePath = convert_to_tif(globalVariables['filePath'])
 
-        img = Image.open(tif_file_path)
+        img = Image.open(tif_filePath)
         fig = Figure(figsize =  (3, 3))
         ax = fig.add_subplot(111)
         ax.imshow(img, cmap = 'gray')
@@ -95,30 +130,90 @@ def load_image(input_img_label):
         canvas = FigureCanvasTkAgg(fig, master = input_img_label)
         canvas.draw()
         canvas.get_tk_widget().pack()
-        loaded_image = ImageTk.PhotoImage(img)
-        input_img_label.config(image = loaded_image)
-        input_img_label.image = loaded_image
+        globalVariables['loadedImage'] = ImageTk.PhotoImage(img)
+        input_img_label.config(image = globalVariables['loadedImage'])
+        input_img_label.image = globalVariables['loadedImage']
 
     create_input_window(window, table, df, input_img_label)
 
 
 
+"""
+    This function clears the text in a tkinter Entry widget if the current text is the default text.
+
+    Parameters:
+    ----------
+    event : tkinter.event
+        The event object that triggered this function. This is typically a mouse click or key press event.
+
+    entry : tkinter.Entry
+        The Entry widget to clear.
+
+    default_text : str
+        The default text to compare with the current text in the Entry widget.
+
+    Returns:
+    -------
+    None
+"""
 def clear_entry(event, entry, default_text):
     if entry.get() == default_text:
         entry.delete(0, tk.END)
 
 
+
+"""
+    This function fills a tkinter Entry widget with the default text if the current text is empty.
+
+    Parameters:
+    ----------
+    event : tkinter.Event
+        The event object that triggered this function. This is typically a mouse click or key press event.
+
+    entry : tkinter.Entry
+        The Entry widget to fill.
+
+    default_text : str
+        The default text to insert into the Entry widget.
+
+    Returns:
+    -------
+    None
+"""
 def fill_entry(event, entry, default_text):
     if entry.get() == '':
         entry.insert(0, default_text)
 
 
 
+"""
+    This function creates a new window for user input with labels, entry fields for each parameter, and a submit button.
+
+    Parameters:
+    ----------
+    window : tkinter.Tk
+        The main application window.
+
+    table: 
+        The table to be used within the TableView.
+
+    df : pandas.DataFrame 
+        The DataFrame to be used to show the values from the user inputs.
+
+    input_img_label : tkinter.Label 
+        The label to display the input image.
+
+    Returns:
+    -------
+    None
+"""
 def create_input_window(window, table, df, input_img_label):
     # Create a new window for user input
     input_window = tk.Toplevel(window)
+    input_window.grab_set() # This prevents user from interacting with the main window
     input_window.title("Input Parameters")
     input_window.geometry("400x400+350+300")
+    input_window.protocol("WM_DELETE_WINDOW", on_input_close)
 
     message_label = tk.Label(input_window, text = "Please enter the values without units. \nExample: 200, 001, 10", font = ('Calibri', 12))
     message_label.pack()
@@ -153,7 +248,8 @@ def create_input_window(window, table, df, input_img_label):
 
     # Create a button that will retrieve the input values when clicked
     submit_button = tk.Button(input_window, text = "Submit", command = lambda: retrieve_input(voltage_entry, 
-        axis_entry, angle_entry, input_window, table, df, input_img_label, voltage_default_text, axis_default_text, angle_default_text))
+        axis_entry, angle_entry, globalVariables, input_window, table, df, input_img_label, voltage_default_text, axis_default_text, angle_default_text))
+
     submit_button.pack()
 
 
@@ -166,82 +262,112 @@ def create_input_window(window, table, df, input_img_label):
     ----------
     voltage_entry : tk.Entry
         The entry field for the Accelerating Voltage.
+
     axis_entry : tk.Entry
         The entry field for the Zone Axis.
+
     angle_entry : tk.Entry
         The entry field for the Convergence Angle.
+
+    globalVariables : dict
+        A dictionary containing various global variables.
+
     input_window : tk.Toplevel
         The window that contains the entry fields.
+
     table : Table
         The table to be updated.
+
     df : pd.DataFrame
         The DataFrame that contains the data for the table.
-"""
-voltage, axis, angle = "", "", ""
-def retrieve_input(voltage_entry, axis_entry, angle_entry, input_window, table, df, input_img_label, 
-    voltage_default_text = "Enter voltage in kV", axis_default_text = "Enter zone axis in format [hkl]", angle_default_text = "Enter angle in mrad"):
-    global measurements
-    global results
-    global loaded_image
-    global voltage
-    global axis
-    global angle
-    voltage, axis, angle = "", "", ""
 
-    voltage = voltage_entry.get()
-    axis = axis_entry.get()
-    angle = angle_entry.get()
+    Returns:
+    -------
+    None
+"""
+def retrieve_input(voltage_entry, axis_entry, angle_entry, globalVariables, input_window, table, df, input_img_label, 
+    voltage_default_text = "Enter voltage in kV", axis_default_text = "Enter zone axis in format [hkl]", angle_default_text = "Enter angle in mrad"):
+
+    globalVariables['voltageValue'] = voltage_entry.get()
+    globalVariables['axisValue'] = axis_entry.get()
+    globalVariables['angleValue'] = angle_entry.get()
     
     # Validate the user inputs
-    if ((voltage == "") or (axis == "") or (angle == "") or (voltage == voltage_default_text) or (axis == axis_default_text) or (angle == angle_default_text)):
+    if ((globalVariables['voltageValue'] == "") or (globalVariables['axisValue'] == "") or (globalVariables['angleValue'] == "") 
+        or (globalVariables['voltageValue'] == voltage_default_text) or (globalVariables['axisValue'] == axis_default_text) 
+        or (globalVariables['angleValue'] == angle_default_text)):
+
         empty_image = tk.PhotoImage()
-        loaded_image = empty_image
-        input_img_label.config(image = loaded_image)
-        input_img_label.image = loaded_image
+        globalVariables['loadedImage'] = empty_image
+        input_img_label.config(image = globalVariables['loadedImage'])
+        input_img_label.image = globalVariables['loadedImage']
         messagebox.showerror("Error", "Please input all parameters.")
         input_window.destroy()
         create_input_window(window, table, df, input_img_label)
     else:
         # Check if the 'Simulation Measurements' titles exist in the DataFrame
-        measurements = ['Accelerating Voltage', 'Zone Axis', 'Convergence Angle']
-        results = [str(voltage) + ' kV', '[' + str(axis) + ']', str(angle) + ' mrad']
+        globalVariables['measurements'] = ['Accelerating Voltage', 'Zone Axis', 'Convergence Angle']
+        globalVariables['results'] = [str(globalVariables['voltageValue']) + ' kV', '[' + str(globalVariables['axisValue']) + ']', 
+            str(globalVariables['angleValue']) + ' mrad']
 
-        for i, measurement in enumerate(measurements):
+        for i, measurement in enumerate(globalVariables['measurements']):
             if measurement in df['Simulation Measurements'].values:
                 # Overwrite the existing values
-                df.loc[df['Simulation Measurements'] == measurement, 'Simulation Results'] = results[i]
+                df.loc[df['Simulation Measurements'] == measurement, 'Simulation Results'] = globalVariables['results'][i]
             else:
                 # Append the new values
-                df = df.append({'Simulation Measurements': measurement, 'Simulation Results': results[i]}, ignore_index = True)
+                df = df.append({'Simulation Measurements': measurement, 'Simulation Results': globalVariables['results'][i]}, ignore_index = True)
 
         # Update the table
         table.updateModel(TableModel(df))
         table.redraw()
 
-        input_img_label.config(image = loaded_image)
-        input_img_label.image = loaded_image
+        input_img_label.config(image = globalVariables['loadedImage'])
+        input_img_label.image = globalVariables['loadedImage']
 
         input_window.destroy()
 
 
 
 """
-    Outputs the image from the database that matches the input image that is being processed. The image is 
-    then displayed onto the GUI next to the input image.
-"""
-output_img = None
-def output_image():
-    global measurements
-    global results
-    global loaded_image
-    global file_path
+    This function is used to output the image from the database that matches the input image being processed. 
+    The image is then displayed onto the GUI next to the input image. Since this function does a lot, I have
+    provided a step-by-step explaination below:
 
-    if loaded_image is None:
+        The function performs the following steps:
+        1. Checks if an image has been loaded. If not, an error message is displayed.
+        2. Reads the image from the file path specified in the global variables.
+        3. Displays the image in a new figure with black borders and no axis.
+        4. Saves the figure in the user's Downloads folder.
+        5. Processes the saved image using the pre_process_image function from the Database module.
+        6. Asks the user to select a directory where the simulations are located.
+        7. Iterates over all images in the selected directory and gets the best image for each one using the get_best_image function from the Database module.
+        8. Finds the image with the minimum error and all images with the same error.
+        9. Extracts the numerical part from the names of the images with the same error and constructs a string with the format 'number nm'.
+        10. Calculates the maximum error among the images with the same error.
+        11. Constructs a string with the format 'best +- error nm'.
+        12. Updates the measurements and results in the global variables with the material and thickness.
+        13. Updates the table in the GUI with the new measurements and results.
+        14. Displays the input image and the best fit image in the GUI.
+
+    Parameters:
+    ----------
+    globalVariables : dict
+        A dictionary containing global variables.
+
+    Returns:
+    -------
+    None
+"""
+def output_image(globalVariables):
+    globalVariables['updateOutputImage'] = True
+
+    if globalVariables['loadedImage'] is None:
         messagebox.showerror("Error", "No image has been loaded.")
         return
-
+    
     # Load the TIFF file
-    image = mpimg.imread(file_path)
+    image = mpimg.imread(globalVariables['filePath'])
     plt.figure(facecolor = 'black')
     
     # Create a new figure and display the image with black borders
@@ -255,7 +381,6 @@ def output_image():
 
     # Save the figure
     bright_output_filename = os.path.join(downloads_folder, "Bright_Exp.tif")
-    # bright_output_filename = 'C:/Users/Angelo Carrion/Bright_Exp.tif'
     plt.savefig(bright_output_filename)
     processed_output_file = Database.pre_process_image(bright_output_filename)
 
@@ -279,8 +404,6 @@ def output_image():
     # Extract ones place and tenths place from the minimum value
     ones_place = int(min_value) % 10
     reference_tenths = int(min_value * 10) % 10
-
-    # values_with_same_error = [value for value in list_num if int(value * 10) % 10 == reference_tenths and int(value) % 10 == ones_place]
 
     # Get names associated with the values at these indices
     # Find indices of values with the same error place as the minimum value
@@ -352,11 +475,11 @@ def output_image():
     data = []
     thickness = final_value
     material = "Silicon" # Right now, this is hardcoded data because we will be using the same material for all simulations for now
-    measurements.extend(['Material', 'Thickness'])
-    results.extend([material, thickness])
+    globalVariables['measurements'].extend(['Material', 'Thickness'])
+    globalVariables['results'].extend([material, thickness])
 
     # Create a list of dictionaries with measurement results
-    for measurement, result in zip(measurements, results):
+    for measurement, result in zip(globalVariables['measurements'], globalVariables['results']):
         data.append({'Simulation Measurements': measurement, 'Simulation Results': result})
 
     # Create a DataFrame from the list of dictionaries
@@ -366,62 +489,96 @@ def output_image():
     table.updateModel(TableModel(df))
     table.redraw()
 
-    input_img_label.config(image = loaded_image)
-    input_img_label.image = loaded_image
-    
-    image_path = best_fit_image
-    if os.path.exists(best_fit_image):
-        global output_img
-        output_img = Image.open(best_fit_image)
-        fig = Figure(figsize =  (3, 3))
-        ax = fig.add_subplot(111)
-        ax.imshow(output_img)
-        ax.axis('off')
+    input_img_label.config(image = globalVariables['loadedImage'])
+    input_img_label.image = globalVariables['loadedImage']
+    if globalVariables['updateOutputImage'] == True:
+        if os.path.exists(best_fit_image):
+            globalVariables['outputImg'] = Image.open(best_fit_image)
+            fig = Figure(figsize =  (3, 3))
+            ax = fig.add_subplot(111)
+            ax.imshow(globalVariables['outputImg'])
+            ax.axis('off')
 
-        # Removes the white space around the image
-        fig.subplots_adjust(left = 0, right = 1, bottom = 0, top = 1)
+            # Removes the white space around the image
+            fig.subplots_adjust(left = 0, right = 1, bottom = 0, top = 1)
 
-        canvas = FigureCanvasTkAgg(fig, master = output_img_label)
-        canvas.draw()
-        canvas.get_tk_widget().pack()
-        loaded_image = ImageTk.PhotoImage(output_img)
-        output_img_label.config(image = loaded_image)
-        output_img_label.image = loaded_image
+            canvas = FigureCanvasTkAgg(fig, master = outputImg_label)
+            canvas.draw()
+            canvas.get_tk_widget().pack()
+            globalVariables['loadedImage'] = ImageTk.PhotoImage(globalVariables['outputImg'])
+            outputImg_label.config(image = globalVariables['loadedImage'])
+            outputImg_label.image = globalVariables['loadedImage']
+            globalVariables['updateOutputImage'] = False
+        else:
+            messagebox.showerror("Error", "No output image found.")
 
-    else:
-        messagebox.showerror("Error", "No output image found.")
+    determine_thickness_button.config(state = 'disabled')    
 
 
 
 """
-    Saves the output image to a user-specified location. The user is prompted to select a location 
+    This function saves the output image to a user-specified location. The user is prompted to select a location 
     and provide a name for the file.
 
-    Raises:
-    ------
-    messagebox.showerror
-        If there is no image to save.
-"""
-def save_image():
-    global output_img
+    Parameters:
+    ----------
+    globalVariables : dict
+        A dictionary containing various global variables.
 
-    if output_img is None:
+    Returns:
+    -------
+    None
+"""
+def save_image(globalVariables):
+    if globalVariables['outputImg'] is None:
         messagebox.showerror("Error", "No output image to save.")
         return
     
-    file_path = filedialog.asksaveasfilename(title = "Please choose a location for the output image to be saved.", defaultextension = ".tif", filetypes = [("TIFF files", "*.tif")])
-    if file_path:
-        output_img.save(file_path)
+    filePath = filedialog.asksaveasfilename(title = "Please choose a location for the output image to be saved.", defaultextension = ".tif", 
+        filetypes = [("TIFF files", "*.tif")])
+
+    if filePath:
+        globalVariables['outputImg'].save(filePath)
 
 
 
-def on_close():
+"""
+    This function is used to close the GUI window.
+
+    Parameters:
+    ----------
+    None
+
+    Returns:
+    -------
+    None
+"""
+def on_window_close():
+    window.quit()
     window.destroy()
+
+
+
+"""
+    This function is used to close the Input Parameters window.
+
+    Parameters:
+    ----------
+    None
+
+    Returns:
+    -------
+    None
+"""
+def on_input_close():
+    messagebox.showerror("Error", "Please input all parameters.")
+    create_input_window(window, table, df, input_img_label)
+
 
 
 # Initialize the main window
 window = tk.Tk()
-window.protocol("WM_DELETE_WINDOW", on_close)
+window.protocol("WM_DELETE_WINDOW", on_window_close)
 window.grid_columnconfigure(0, weight = 1)
 window.grid_rowconfigure(0, weight = 10)
 window.grid_rowconfigure(1, weight = 1)
@@ -444,11 +601,35 @@ window.geometry("{0}x{1}+12+12".format(window_width, window_height))
 
 
 
+"""
+    This function is used to change the background color of a widget to 'dark gray' when the mouse pointer enters the widget.
+
+    Parameters:
+    ----------
+    e : Event
+        An event object that contains information about the event. The widget that triggered the event can be accessed through the 'widget' attribute.
+
+    Returns:
+    -------
+    None
+"""
 def on_enter(e):
     e.widget['background'] = 'dark gray'
 
 
 
+"""
+    This function is used to change the background color of a widget to 'light gray' when the mouse pointer leaves the widget.
+
+    Parameters:
+    ----------
+    e : Event
+        An event object that contains information about the event. The widget that triggered the event can be accessed through the 'widget' attribute.
+
+    Returns:
+    -------
+    None
+"""
 def on_leave(e):
     e.widget['background'] = 'light gray'
 
@@ -463,25 +644,26 @@ left_frame.grid_rowconfigure((0, 1, 2), weight = 1)
 input_img_label = tk.Label(left_frame)
 input_img_label.grid(row = 0, column = 0, padx = 50, pady = 50, sticky = "nw")
 
-output_img_label = tk.Label(left_frame)
-output_img_label.grid(row = 0, column = 1, padx = 50, pady = 50, sticky = "ne")
+outputImg_label = tk.Label(left_frame)
+outputImg_label.grid(row = 0, column = 1, padx = 50, pady = 50, sticky = "ne")
 
-load_button = tk.Button(left_frame, text = "Load Image", relief = "raised", fg = 'black', bg = 'light gray', height = 5, width = 40, font = 15, command = lambda: load_image(input_img_label))
+load_button = tk.Button(left_frame, text = "Load Image", relief = "raised", fg = 'black', bg = 'light gray', height = 5, width = 40, font = 15, 
+    command = lambda: load_image(input_img_label, outputImg_label, globalVariables))
+
 load_button.bind("<Enter>", on_enter)
 load_button.bind("<Leave>", on_leave)
 load_button.grid(row = 2, column = 0, padx = 10, pady = 10, sticky = "sw")
 
+determine_thickness_button = tk.Button(left_frame, text = "Determine Thickness", relief = "raised", fg = 'black', bg = 'light gray', height = 5, 
+    width = 40, font = 15, command = lambda: output_image(globalVariables))
 
-###
-# Later on, I will customize the buttons. As a reminder "bg" is for background color and "fg" is for text color
-###
-
-determine_thickness_button = tk.Button(left_frame, text = "Determine Thickness", relief = "raised", fg = 'black', bg = 'light gray', height = 5, width = 40, font = 15, command = output_image)
 determine_thickness_button.bind("<Enter>", on_enter)
 determine_thickness_button.bind("<Leave>", on_leave)
 determine_thickness_button.grid(row = 2, column = 1, padx = 10, pady = 10, sticky = "se")
 
-save_button = tk.Button(left_frame, text = "Save Image", relief = "raised", fg = 'black', bg = 'light gray', height = 2, width = 15, font = 15, command = save_image)
+save_button = tk.Button(left_frame, text = "Save Image", relief = "raised", fg = 'black', bg = 'light gray', height = 2, width = 15, font = 15, 
+    command =  lambda: save_image(globalVariables))
+
 save_button.bind("<Enter>", on_enter)
 save_button.bind("<Leave>", on_leave)
 save_button.grid(row = 1, column = 1, padx = 10, pady = 10, sticky = "se")
