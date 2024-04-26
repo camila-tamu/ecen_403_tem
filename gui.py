@@ -159,6 +159,8 @@ def load_image(input_img_label, outputImg_label, globalVariables):
 def clear_entry(event, entry, default_text):
     if entry.get() == default_text:
         entry.delete(0, tk.END)
+        entry.insert(0, '')
+        entry.config(fg = 'gray')
 
 
 
@@ -183,6 +185,27 @@ def clear_entry(event, entry, default_text):
 def fill_entry(event, entry, default_text):
     if entry.get() == '':
         entry.insert(0, default_text)
+        entry.config(fg = 'gray')
+
+
+
+"""
+    This function changes the user's input text color to black when they start typing.
+
+    Parameters:
+    ----------
+    event : tkinter.Event
+        The event object that triggered this function. This is typically a mouse click or key press event.
+
+    entry : tkinter.Entry
+        The Entry widget to fill.
+
+    Returns:
+    -------
+    None
+"""
+def key_entry(event, entry):
+    entry.config(fg = 'black')
 
 
 
@@ -224,8 +247,10 @@ def create_input_window(window, table, df, input_img_label):
     voltage_entry = tk.Entry(input_window, width = 30)
     voltage_default_text = "Enter voltage in kV"
     voltage_entry.insert(0, voltage_default_text)
+    voltage_entry.config(fg = 'gray')
     voltage_entry.bind("<FocusIn>", lambda event: clear_entry(event, voltage_entry, voltage_default_text))
     voltage_entry.bind("<FocusOut>", lambda event: fill_entry(event, voltage_entry, voltage_default_text))
+    voltage_entry.bind("<Key>", lambda event: key_entry(event, voltage_entry))
     voltage_entry.pack()
 
     axis_label = tk.Label(input_window, text = "Zone Axis:", font = ('Calibri', 12, 'bold'))
@@ -233,8 +258,10 @@ def create_input_window(window, table, df, input_img_label):
     axis_entry = tk.Entry(input_window, width = 30)
     axis_default_text = "Enter zone axis in format [hkl]"
     axis_entry.insert(0, axis_default_text)
+    axis_entry.config(fg = 'gray')
     axis_entry.bind("<FocusIn>", lambda event: clear_entry(event, axis_entry, axis_default_text))
     axis_entry.bind("<FocusOut>", lambda event: fill_entry(event, axis_entry, axis_default_text))
+    axis_entry.bind("<Key>", lambda event: key_entry(event, axis_entry))
     axis_entry.pack()
 
     angle_label = tk.Label(input_window, text = "Convergence Angle:", font = ('Calibri', 12, 'bold'))
@@ -242,8 +269,10 @@ def create_input_window(window, table, df, input_img_label):
     angle_entry = tk.Entry(input_window, width = 30)
     angle_default_text = "Enter angle in mrad"
     angle_entry.insert(0, angle_default_text)
+    angle_entry.config(fg = 'gray')
     angle_entry.bind("<FocusIn>", lambda event: clear_entry(event, angle_entry, angle_default_text))
     angle_entry.bind("<FocusOut>", lambda event: fill_entry(event, angle_entry, angle_default_text))
+    angle_entry.bind("<Key>", lambda event: key_entry(event, angle_entry))
     angle_entry.pack()
 
     # Create a button that will retrieve the input values when clicked
