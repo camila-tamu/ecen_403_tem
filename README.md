@@ -1,6 +1,7 @@
 # ECEN 403/404 - TEM Capstone Project
 By Camila Brigueda, Angelo Carrion, and Tejini Murthy with the help of the Analytical Engineering Team at Samsung Austin Semiconductors
 
+<br />
 
 # Table of Contents
 - [Introduction](#introduction)
@@ -19,6 +20,7 @@ Welcome to the ECEN 403/404 TEM Capstone Project repository! This repository con
 
 The project aims to create an analytical database with a working graphical user interface (GUI) using the position averaged convergent beam electron diffraction (PACBED) technique. This technique is a precise and convenient TEM thickness determination technique in scanning transmission electron microscopy (STEM). A convolution neural network (CNN) will also be trained using many simulation images to receive the most accurate prediction for the sample thickness. Overall, this is essential for technology node sample preparation and imaging processes as it is more accurate and ensures mechanical stability during wafer manufacturing and device processing.
 
+<br />
 
 # Features
 
@@ -32,6 +34,7 @@ The GUI is designed to be visually engaging, allowing users to enter various par
 
 The CNN is...  *** FILL THIS OUT ***
 
+<br />
 
 # Installation
 
@@ -113,6 +116,7 @@ This command allows you to use Pillow, which is another image processing library
 
     pip install pillow pandas pandastable
 
+<br />
 
 # Usage
 
