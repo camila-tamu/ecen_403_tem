@@ -10,6 +10,7 @@ By Camila Brigueda, Angelo Carrion, and Tejini Murthy with the help of the Analy
     - [GUI Installation](#gui-installation)
 - [Usage](#usage)
 
+<br />
 
 # Introduction
 Welcome to the ECEN 403/404 TEM Capstone Project repository! This repository contains the code and resources for our project. Tranmission Electron Microscopy (TEM) takes an electron charged sample, positively charged probe, and acceleration voltage to capture images of the patterns. These images are then used to analyze and interpret interactions at the molecular level. Samsung Austin Semiconductor (SAS) needs a better method of determining TEM sample thickness since it is important for quantitative interpretation of energy dispersive X-ray spectrometry (EDX) and geographic phase analysis (GPA) to obtain the accurate and reliable composition measurement and strain profile.
