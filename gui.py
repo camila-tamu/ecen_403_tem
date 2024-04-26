@@ -58,7 +58,7 @@ globalVariables = {
         The path to the newly created TIFF image.    
 """
 def convert_to_tif(filePath):
-    img = Image.open(filePath)
+    img = Image.open(filePath).convert('RGB')
     new_filePath = filePath.rsplit('.', 1)[0] + '.tif'
     img.save(new_filePath, 'TIFF')
 
@@ -213,9 +213,9 @@ def create_input_window(window, table, df, input_img_label):
     input_window.grab_set() # This prevents user from interacting with the main window
     input_window.title("Input Parameters")
     input_window.geometry("400x400+350+300")
-    input_window.protocol("WM_DELETE_WINDOW", on_input_close)
+    input_window.protocol("WM_DELETE_WINDOW", lambda: on_input_close(input_window))
 
-    message_label = tk.Label(input_window, text = "Please enter the values without units. \nExample: 200, 001, 10", font = ('Calibri', 12))
+    message_label = tk.Label(input_window, text = "Please enter the values without units. \nExample: 200, 011, 9.75", font = ('Calibri', 12))
     message_label.pack()
 
     # Create labels and entry fields for each parameter
@@ -301,8 +301,8 @@ def retrieve_input(voltage_entry, axis_entry, angle_entry, globalVariables, inpu
         globalVariables['loadedImage'] = empty_image
         input_img_label.config(image = globalVariables['loadedImage'])
         input_img_label.image = globalVariables['loadedImage']
-        messagebox.showerror("Error", "Please input all parameters.")
         input_window.destroy()
+        messagebox.showerror("Error", "Please input all parameters.")
         create_input_window(window, table, df, input_img_label)
     else:
         # Check if the 'Simulation Measurements' titles exist in the DataFrame
@@ -570,7 +570,8 @@ def on_window_close():
     -------
     None
 """
-def on_input_close():
+def on_input_close(inputWindow):
+    inputWindow.destroy()
     messagebox.showerror("Error", "Please input all parameters.")
     create_input_window(window, table, df, input_img_label)
 
