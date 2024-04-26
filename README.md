@@ -1,4 +1,4 @@
-# ECEN 403/404 - TEM Capstone Project
+# ECEN 403/404 - Texas A&M University Electrical Engineering Capstone Project
 By Camila Brigueda, Angelo Carrion, and Tejini Murthy with the help of the Analytical Engineering Team at Samsung Austin Semiconductors
 
 <br />
