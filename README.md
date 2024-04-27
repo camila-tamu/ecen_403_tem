@@ -7,8 +7,10 @@ By Camila Brigueda, Angelo Carrion, and Tejini Murthy with the help of the Analy
 - [Introduction](#introduction)
 - [Features](#features)
 - [Installation](#installation)
+    - [Simulation Installation](#simulation-installation)
     - [Database Installation](#database-installation)
     - [GUI Installation](#gui-installation)
+    - [CNN Installation](#cnn-installation)
 - [Usage](#usage)
 
 <br />
