@@ -89,7 +89,7 @@ This command will put the user into the py4dstem environment so all the necessar
 
 <br />
 
-This command is going to copy the different libraries associated with py4dstem, py4d-browser, pymatgen, and jupyterlab. Py4dstem, py4d-browser, and pymatgen are a set of python tools for processing and analysis of four-dimensional scanning transmission electron microscopy (4D-STEM) data. Jupyter lb is the application used in this project.
+This command is going to copy the different libraries associated with py4dstem, py4d-browser, pymatgen, and jupyterlab. Py4dstem, py4d-browser, and pymatgen are a set of python tools for processing and analysis of four-dimensional scanning transmission electron microscopy (4D-STEM) data. Jupyter lab is the application used in this project.
 
     conda install -c conda-forge py4dstem py4d-browser pymatgen jupyterlab
 
