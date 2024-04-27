@@ -32,7 +32,7 @@ The GUI is designed to be visually engaging, allowing users to enter various par
 
 <br />
 
-The CNN is...  *** FILL THIS OUT ***
+The CNN is used to predict the thickness of an image. The CNN code uses a folder of augmented simulation data to train its 3-convolution-layer model which can then be used to make predictions. Upon loading the pre-processed .tif image (384 x 384 pixels) and running the code, the CNN will use its trained model to predict the thickness of the image with an uncertainty of plus or minus 4nm.
 
 <br />
 
@@ -53,6 +53,13 @@ Navigate to the project directory
 
 <br />
 
+### Simulation Installation:
+
+Along with the database and GUI libraries, the image simulation code uses both SciPy and TQDM. This command allows you to use both:
+
+    pip install scipy tqdm
+
+<br />
    
 ### Database Installation:
 
@@ -115,6 +122,24 @@ This command allows you to use OpenCV which is a Python library that allows you 
 This command allows you to use Pillow, which is another image processing library, and Pandas, which allows for the Table View by using pandastable:
 
     pip install pillow pandas pandastable
+
+<br />
+
+### CNN Installation:
+
+Along with the above libraries, the CNN also uses TensorFlow, Keras, TensorFlow-IO, and skimage from Scikit-Image.
+
+This command allows you to use TensorFlow and Keras:
+
+    pip install tensorflow
+
+This command allows you to use TensorFlow-IO:
+
+    pip install tensorflow_io
+
+This command allows you to use skimage:
+
+    pip install scikit-image
 
 <br />
 
